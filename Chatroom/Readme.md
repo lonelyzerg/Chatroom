@@ -1,5 +1,5 @@
 A simple java Internet chat room.
-###implemented:
+### implemented:
 connect, register, send message.
-###going to implement:
+### going to implement:
 encryption, multi-channel, GUI ...
