@@ -1,15 +1,11 @@
 package chatroom;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.TimeUnit;
-
 import exceptions.NameException;
 
 public class Connection {
@@ -69,7 +65,8 @@ public class Connection {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		connection.close();
+		System.out.println("Thanks for using, bye!");
 		return 1;
 	}
 
@@ -114,6 +111,7 @@ public class Connection {
 				out.flush();
 				Thread.sleep(1000);
 				out.close();
+				in.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -125,6 +123,7 @@ public class Connection {
 	public class ReceivingThread extends Thread {
 		public void run() {
 			try {
+				this.getId();
 				String[] message;
 				while (!stop) {
 					message = parse(in.readLine());
@@ -132,7 +131,7 @@ public class Connection {
 					System.out.println(message[1] + ": " + message[2]);
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}
