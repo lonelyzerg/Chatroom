@@ -20,13 +20,14 @@ public class Connection {
 	private DataOutputStream out;
 	private BufferedReader in;
 	private boolean stop = false;
-	private static final String register_success = "[REGI]Success\n";
-	private static final String register_failure = "[REGI]Failure\n";
+	private static final String register_success = "[REGI]Success";
+	private static final String register_failure = "[REGI]Failure";
 	private static final String register_prefix = "[REGI]";
 	private static final String exit_code = "[EXIT]\n";
 	private static final String chat_prefix = "[CHAT]";
 	private static final String suffix = "\n";
 	private static final String quit_command = "\\q";
+	private static final String charset_utf_8 = "UTF-8";
 
 	public Connection(String host_string, String username) throws UnknownHostException, IOException, NameException {
 		this.username = username;
@@ -44,12 +45,12 @@ public class Connection {
 	}
 
 	public int startChatting() throws UnknownHostException, IOException, NameException {
-		System.err.println("Connecting to server " + host + port);
+		System.err.println("Connecting to server " + host + ":" + port);
 		connection = new Socket(host, port);
-		connection.setSoTimeout(10000);
+		// connection.setSoTimeout(10000);
 
 		out = new DataOutputStream(connection.getOutputStream());
-		in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+		in = new BufferedReader(new InputStreamReader(connection.getInputStream(), charset_utf_8));
 
 		System.err.println("Registering with username " + username);
 		if (register(username) == -1) {
@@ -74,18 +75,18 @@ public class Connection {
 
 	public int register(String username) {
 		try {
-			out.write((register_prefix + username + suffix).getBytes("UTF-8"));
+			out.write((register_prefix + username + suffix).getBytes(charset_utf_8));
 			out.flush();
-			TimeUnit.SECONDS.sleep(1);
+			// TimeUnit.SECONDS.sleep(1);
 			String response = in.readLine();
-			while (true) {
-				if (response.equals(register_failure)) {
-					throw new NameException("register fails");				
-				} else if (response.equals(register_success)) {
-					System.err.println("Registered!");
-					break;
-				}
+
+			if (response.equals(register_failure)) {
+				throw new NameException("register fails");
+			} else if (response.equals(register_success)) {
+				System.err.println("Registered!");
+				return 1;
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -98,17 +99,18 @@ public class Connection {
 				String message;
 				BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 				while (!stop) {
-					System.out.println("[" + username + "]: ");
+					System.out.println("[" + username + "]: Enter your message");
 					message = reader.readLine();
 					if (message.equals(quit_command)) {
 						stop = true;
 						break;
 					}
-					out.write((chat_prefix + message + suffix).getBytes("UTF-8"));
+					out.write((chat_prefix + message + suffix).getBytes(charset_utf_8));
 					out.flush();
-					System.out.println("[" + username + "]: " + message);
+					System.out.println(username + ": " + message);
 				}
-				out.write(exit_code.getBytes("UTF-8"));
+				reader.close();
+				out.write(exit_code.getBytes(charset_utf_8));
 				out.flush();
 				Thread.sleep(1000);
 				out.close();
@@ -123,10 +125,11 @@ public class Connection {
 	public class ReceivingThread extends Thread {
 		public void run() {
 			try {
-				String message = "";
+				String[] message;
 				while (!stop) {
-					message = in.readLine();
-					System.out.println(message);
+					message = parse(in.readLine());
+					System.err.println("received a message from server");
+					System.out.println(message[1] + ": " + message[2]);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -140,7 +143,7 @@ public class Connection {
 		int j = message.indexOf(']', i + 1);
 		result[0] = message.substring(1, i);
 		result[1] = message.substring(i + 2, j);
-		result[2] = message.substring(j + 1, message.length());
+		result[2] = message.substring(j + 1);
 		return result;
 	}
 
