@@ -1,17 +1,14 @@
 package chatroom;
 
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 
 import exceptions.NameException;
 import ui.Window;
 
 public class Chatroom {
-	private String host_string;
-
-
 	public static void main(String[] args) throws IOException, NameException {
 		Chatroom c = new Chatroom();
 //		EventQueue.invokeLater(new Runnable() {
