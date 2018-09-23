@@ -6,6 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JTextArea;
+
+import data.Message;
 import exceptions.NameException;
 
 public class Connection {
@@ -16,13 +22,15 @@ public class Connection {
 	private DataOutputStream out;
 	private BufferedReader in;
 	private boolean stop = false;
+	private ArrayList<Message> message_list;
+	private JTextArea message_box;
 	private static final String register_success = "[REGI]Success";
 	private static final String register_failure = "[REGI]Failure";
 	private static final String register_prefix = "[REGI]";
 	private static final String exit_code = "[EXIT]\n";
 	private static final String chat_prefix = "[CHAT]";
 	private static final String suffix = "\n";
-	private static final String quit_command = "\\q";
+	// private static final String quit_command = "\\q";
 	private static final String charset_utf_8 = "UTF-8";
 
 	public Connection(String host_string, String username) throws UnknownHostException, IOException, NameException {
@@ -37,6 +45,16 @@ public class Connection {
 		this.username = username;
 		this.host = host;
 		this.port = port;
+
+		startChatting();
+	}
+
+	public Connection(String host, int port, String username, JTextArea message_box)
+			throws UnknownHostException, IOException, NameException {
+		this.username = username;
+		this.host = host;
+		this.port = port;
+		this.message_box = message_box;
 		startChatting();
 	}
 
@@ -52,21 +70,17 @@ public class Connection {
 		if (register(username) == -1) {
 			throw new NameException("name already registered");
 		}
-
-		SendingThread s = new SendingThread();
+		message_list = new ArrayList<Message>();
 		ReceivingThread r = new ReceivingThread();
 
-		s.start();
 		r.start();
-
-		try {
-			s.join();
-			r.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		connection.close();
-		System.out.println("Thanks for using, bye!");
+//		try {
+//			r.join();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		connection.close();
+//		System.out.println("Thanks for using, bye!");
 		return 1;
 	}
 
@@ -90,33 +104,38 @@ public class Connection {
 		return -1;
 	}
 
-	public class SendingThread extends Thread {
-		public void run() {
-			try {
-				String message;
-				BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-				while (!stop) {
-					System.out.println("[" + username + "]: Enter your message");
-					message = reader.readLine();
-					if (message.equals(quit_command)) {
-						stop = true;
-						break;
-					}
-					out.write((chat_prefix + message + suffix).getBytes(charset_utf_8));
-					out.flush();
-					System.out.println(username + ": " + message);
-				}
-				reader.close();
-				out.write(exit_code.getBytes(charset_utf_8));
-				out.flush();
-				Thread.sleep(1000);
-				out.close();
-				in.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+	public void onClose() {
+
+		try {
+			stop = true;
+			out.write(exit_code.getBytes(charset_utf_8));
+			out.flush();
+			in.close();
+			TimeUnit.MILLISECONDS.sleep(200);
+			out.close();
+
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void send(String message) {
+		try {
+
+			// BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+			// System.out.println("[" + username + "]: Enter your message");
+			// message = reader.readLine();
+
+			out.write((chat_prefix + message + suffix).getBytes(charset_utf_8));
+			out.flush();
+			//System.out.println(username + ": " + message);
+			message_box.append(username + ":\n " + message + "\n");
+			// reader.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -124,14 +143,20 @@ public class Connection {
 		public void run() {
 			try {
 				this.getId();
-				String[] message;
+				String[] raw_message;
 				while (!stop) {
-					message = parse(in.readLine());
-					System.err.println("received a message from server");
-					System.out.println(message[1] + ": " + message[2]);
+					String msg = in.readLine();
+					if (msg!=null) {
+						raw_message = parse(msg);
+						Message message = new Message(raw_message[1], raw_message[2]);
+						System.err.println("received a message from server");
+						message_list.add(message);
+						message_box.append(raw_message[1] + ":\n " + raw_message[2] + "\n");
+						// System.out.println(message[1] + ": " + message[2]);
+					}
 				}
 			} catch (IOException e) {
-				//e.printStackTrace();
+				// e.printStackTrace();
 			}
 		}
 	}

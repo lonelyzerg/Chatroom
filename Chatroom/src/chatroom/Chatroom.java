@@ -6,16 +6,19 @@ import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 
 import exceptions.NameException;
+import ui.Window;
 
 public class Chatroom {
 	private String host_string;
-	private String host;
-	private String username;
-	private Connection connection;
-	private static final int port = 999;
+
 
 	public static void main(String[] args) throws IOException, NameException {
 		Chatroom c = new Chatroom();
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//			}
+//		});
+
 		try {
 
 			c.start();
@@ -28,19 +31,25 @@ public class Chatroom {
 		}
 	}
 
+	public Chatroom() {
+
+	}
+
 	public void start() throws IOException, NameException {
 		// needs logic optimize. No need to enter the host again to change name.
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+//		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		// System.out.println("Please enter the host name and port number: ");
 		// host_string = reader.readLine();
-		System.out.println("Please enter the host name: ");
-		host = reader.readLine();
-		System.out.println("Please enter the username: ");
-		username = reader.readLine();
-
-		connection = new Connection(host, port, username);
-		reader.close();
+//		System.out.println("Please enter the host name: ");
+//		host = reader.readLine();
+//		System.out.println("Please enter the username: ");
+//		username = reader.readLine();
+//		reader.close();
+		Window w = new Window();
+//		connection = new Connection(host, port, username);
+		
+		
 	}
 
 }
