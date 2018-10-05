@@ -140,7 +140,7 @@ public class Window {
 		chat_panel.add(message_lable);
 
 		message_box = new JTextArea(8, 20);
-		message_box.setFont(new Font("Calibri", Font.PLAIN, 15));
+		message_box.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 15));
 		message_box.setEditable(false);
 		message_box.setWrapStyleWord(true);
 		message_box.setLineWrap(true);
@@ -151,7 +151,7 @@ public class Window {
 		chat_panel.add(message_scroll);
 
 		send_box = new JTextArea();
-		send_box.setFont(new Font("Calibri", Font.PLAIN, 15));
+		send_box.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 15));
 		send_box.setLineWrap(true);
 		send_box.setWrapStyleWord(true);
 		send_box.setBounds(25, 290, 390, 65);
